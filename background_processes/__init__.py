@@ -1,0 +1,4 @@
+from .client_frames_processor.client_frames_processor import ClientFramesProcessor
+from .final_video_processor.final_video_processor import FinalVideoProcessor
+from .scoreboard_processor.scoreboard_processor_main import ScoreboardProcess
+from .thumbnails_sio_pub_feeder.thumbnails_sio_pub_feeder import ThumbnailsSioPubFeeder
