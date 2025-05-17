@@ -1,0 +1,13 @@
+# Trash files
+*~
+*.pyc
+.Trash-*
+.swp
+.idea
+
+# Virtual Env
+venv/*
+
+# Build
+api/build/*
+build/*
