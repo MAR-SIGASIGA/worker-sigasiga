@@ -1,6 +1,7 @@
 import time
 import redis
 from multiprocessing import Process
+import setproctitle
 
 class EventTimer(Process):
     def __init__(self, event_id, redis_client):
@@ -34,6 +35,7 @@ class EventTimer(Process):
 
     def run(self):
         """Main timer process loop."""
+        setproctitle.setproctitle(f"{self.event_id}-scoreboard_timer")
         while True:
             if self.read_timer_status():
                 current_time = self.read_timer_value()

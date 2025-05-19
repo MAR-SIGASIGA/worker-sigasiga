@@ -6,7 +6,7 @@ import signal
 import sys
 import json
 from background_processes import ClientFramesProcessor, FinalVideoProcessor, ScoreboardProcess, ThumbnailsSioPubFeeder
-from setproctitle import setproctitle
+import setproctitle
 
 # from dotenv import load_dotenv
 
@@ -20,7 +20,7 @@ REDIS_DB = int(os.getenv('REDIS_DB', 0))
 
 class EventManager(multiprocessing.Process):
     def __init__(self, event_id):
-        super().__init__()
+        super().__init__(name=f"{event_id}-manager")
         self.event_id = event_id
         self.processes = []
         self.redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
@@ -34,11 +34,11 @@ class EventManager(multiprocessing.Process):
         scoreboard_process.start()
         self.processes.append(scoreboard_process)
         # Load the final video processor
-        final_video_processor = FinalVideoProcessor(self.redis_client, self.event_id)
+        final_video_processor = FinalVideoProcessor(self.redis_client, self.event_id, name=f"{self.event_id}-final_video")
         final_video_processor.start()
         self.processes.append(final_video_processor)
         # Load the thumbnails socket.io feeder
-        thumbnails_sio_pub_feeder = ThumbnailsSioPubFeeder(self.redis_client, self.event_id)
+        thumbnails_sio_pub_feeder = ThumbnailsSioPubFeeder(self.redis_client, self.event_id, name=f"{self.event_id}-thumbs_feeder")
         thumbnails_sio_pub_feeder.start()
         self.processes.append(thumbnails_sio_pub_feeder)
 
@@ -70,7 +70,8 @@ class EventManager(multiprocessing.Process):
                     client_frames_process = ClientFramesProcessor(
                         redis_client=self.redis_client,
                         event_id=self.event_id,
-                        client_id=client_id
+                        client_id=client_id,
+                        name=f"{self.event_id}-cfp-{client_id}"
                     )
                     client_frames_process.start()
                     self.processes.append(client_frames_process)
@@ -89,6 +90,7 @@ class EventManager(multiprocessing.Process):
 
     def run(self):
         """Main loop for the event manager"""
+        setproctitle.setproctitle(f"{self.event_id}-event_manager")
         print(f"Event manager started for event {self.event_id}")
         self.load_background_processes()
         self.handle_actions()

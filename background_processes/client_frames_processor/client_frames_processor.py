@@ -6,10 +6,11 @@ import av
 import redis
 import os
 from .redis_stream_reader import RedisStreamReader
+import setproctitle
 
 class ClientFramesProcessor(multiprocessing.Process):
-    def __init__(self, redis_client, event_id, client_id):
-        super().__init__()
+    def __init__(self, redis_client, event_id, client_id, name=None):
+        super().__init__(name=name)
         self.redis_client = redis_client
         self.event_id = event_id
         self.client_id = client_id
@@ -102,6 +103,7 @@ class ClientFramesProcessor(multiprocessing.Process):
             print("🟢 Lectura finalizada")
 
     def run(self):
+        setproctitle.setproctitle(f"{self.event_id}-cfp-{self.client_id}")
         print(f"client frame processor for event {self.event_id} and client {self.client_id}")
         self.redis_client.set(f"{self.event_id}-video_source-{self.client_id}-process_alive", int(True))
         self.webm_reader()

@@ -76,5 +76,5 @@ class ScoreboardController():
 
 if __name__ == "__main__":
     event_id = input("Enter event ID: ")
-    controller = ScoreboardController(event_id, redis.Redis(host='localhost', port=31802, db=0))
+    controller = ScoreboardController(event_id, redis.Redis(host='redis-sigasiga', port=6379, db=0))
     controller.start_controller()

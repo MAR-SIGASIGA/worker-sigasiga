@@ -6,6 +6,7 @@ import multiprocessing
 from .scoreboard_frame_processor import ScoreboardFrameProcessor
 from .secoreboard_event_timer import EventTimer
 import time
+import setproctitle
 
 class ScoreboardProcess(multiprocessing.Process):
     def __init__(self, event_id, redis_client):
@@ -32,9 +33,10 @@ class ScoreboardProcess(multiprocessing.Process):
 
     def run(self):
         """Main process loop."""
+        setproctitle.setproctitle(f"{self.event_id}-scoreboard_main")
         # Initialize Redis keys
         self.initialize_redis_keys()
-        frame_processor = ScoreboardFrameProcessor(self.event_id, self.redis_client)
+        frame_processor = ScoreboardFrameProcessor(event_id=self.event_id, redis_client=self.redis_client, name=f"{self.event_id}-scoreboard_frames")
         timer = EventTimer(self.event_id, self.redis_client)
         frame_processor.start()
         timer.start()

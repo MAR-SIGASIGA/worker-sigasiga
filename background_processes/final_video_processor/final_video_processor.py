@@ -4,12 +4,14 @@ import redis
 import time
 import io
 import os
+import setproctitle
+
 class FinalVideoProcessor(multiprocessing.Process):
     """
     Final Video Processor class to handle video processing tasks.
     """
-    def __init__(self, redis_client, event_id):
-        super().__init__()
+    def __init__(self, redis_client, event_id, name=None):
+        super().__init__(name=name)
         self.redis_client = redis_client
         self.event_id = event_id
 
@@ -42,6 +44,8 @@ class FinalVideoProcessor(multiprocessing.Process):
         name_selected_source = "default"
         self.redis_client.set(name_selected_source_key, name_selected_source.encode('utf-8'))
         time.sleep(2)
+        frames_per_second_size = 0
+        frames_count = 0
         while True:
             start_time = time.time()
             selected_source_key = f"{self.event_id}-video_source-" + self.redis_client.get(name_selected_source_key).decode('utf-8')
@@ -55,8 +59,10 @@ class FinalVideoProcessor(multiprocessing.Process):
                 try:
                     buffer = io.BytesIO()
                     frame_to_process = frame_to_process.convert("RGB")
-                    frame_to_process.save(buffer, format="JPEG", quality=85)
+                    frame_to_process.save(buffer, format="WEBP", quality=1)
                     frame_to_process_bytes = buffer.getvalue()
+                    frames_per_second_size += len(frame_to_process_bytes)
+                    frames_count += 1
                     self.redis_client.set(final_video_frame_key, frame_to_process_bytes)
                 except Exception as e:
                     self.redis_client.set(final_video_frame_key, default_png_bytes)
@@ -67,8 +73,14 @@ class FinalVideoProcessor(multiprocessing.Process):
             wait_time = (1 / frame_rate) - elapsed_time
             if wait_time > 0:
                 time.sleep(wait_time)
+            if frames_count >= 30:
+                frames_count = 0
+                avg_frames_size = frames_per_second_size / 30 / 1024
+                print(f"Tamaño total 30fps: {frames_per_second_size/1024:.2f} KB, Tamaño promedio: {avg_frames_size:.2f} KB")
+                frames_per_second_size = 0
 
     def run(self):
+        setproctitle.setproctitle(f"{self.event_id}-final_video")
         print(f"Final video processor started for event {self.event_id}")
         self.process_video_frames()
         print(f"Final video processor stopped for event {self.event_id}")

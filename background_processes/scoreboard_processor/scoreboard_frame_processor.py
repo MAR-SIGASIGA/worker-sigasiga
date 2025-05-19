@@ -4,9 +4,11 @@ import io
 from PIL import Image, ImageDraw, ImageFont
 from multiprocessing import Process
 import os
+import setproctitle
+
 class ScoreboardFrameProcessor(Process):
-    def __init__(self, event_id, redis_client):
-        super().__init__()
+    def __init__(self, event_id, redis_client, name=None):
+        super().__init__(name=name)
         self.event_id = event_id
         self.redis_client = redis_client
         self.fps = 25
@@ -94,6 +96,7 @@ class ScoreboardFrameProcessor(Process):
 
     def run(self):
         """Main process loop."""
+        setproctitle.setproctitle(f"{self.event_id}-scoreboard_frames")
         # Load the template image
         sleep_time = 1 / 25
         try:
