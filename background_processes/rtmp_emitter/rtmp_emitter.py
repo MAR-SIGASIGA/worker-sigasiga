@@ -1,9 +1,9 @@
 import time
 import redis
 import subprocess
-import numpy as np
-import cv2
 import multiprocessing
+import os
+
 class RtmpEmitter(multiprocessing.Process):
     def __init__(self, redis_client, event_id, rtmp_url, fps=25, width=1280, height=720):
         super().__init__()
@@ -38,9 +38,14 @@ class RtmpEmitter(multiprocessing.Process):
 
         ffmpeg = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
         video_key = f"{self.event_id}-video_source-final_frame"
-
+        print(f"RTMP {self.event_id} status: {self.redis_client.get(f'{self.event_id}-rtmp_status')}")
         try:
+            self.redis_client.set(f"{self.event_id}-rtmp_status", int(True))
             while True:
+                if int(self.redis_client.get(f"{self.event_id}-rtmp_status")) == int(False):
+                    print("¡RTMP status is False, stopping RTMP emitter!")
+                    os._exit(0)
+                
                 start_time = time.time()
 
                 # Leer frame desde Redis (como bytes WEBP)
@@ -70,7 +75,7 @@ class RtmpEmitter(multiprocessing.Process):
 def main():
     # Configuración de Redis
     redis_client = redis.Redis(host='redis-sigasiga', port=6379, db=0)
-    event_id = "47f3okNyYJzs8an9JyjmUc"  # Clave de Redis donde se almacenan los frames
+    event_id = "h6Bi4M7QLcTFnD6prVAKCS"  # Clave de Redis donde se almacenan los frames
     rtmp_url = "rtmp://a.rtmp.youtube.com/live2/9kvw-ujak-cp6w-4qwg-cx62"
     
     # Crear e iniciar el proceso de emisión RTMP

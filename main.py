@@ -5,7 +5,9 @@ import os
 import signal
 import sys
 import json
-from background_processes import ClientFramesProcessor, FinalVideoProcessor, ScoreboardProcess, ThumbnailsSioPubFeeder
+from background_processes import (ClientFramesProcessor, FinalVideoProcessor, 
+                                  ScoreboardProcess, ThumbnailsSioPubFeeder,
+                                  RtmpEmitter)
 import setproctitle
 
 # from dotenv import load_dotenv
@@ -75,6 +77,17 @@ class EventManager(multiprocessing.Process):
                     )
                     client_frames_process.start()
                     self.processes.append(client_frames_process)
+                if action == 'start_rtmp_emitter':
+                    try:
+                        rtmp_url_base = self.redis_client.get(f"{self.event_id}-rtmp_url").decode('utf-8')
+                        rtmp_key = self.redis_client.get(f"{self.event_id}-rtmp_key").decode('utf-8')
+                        rtmp_url = f"{rtmp_url_base}/{rtmp_key}"
+                        rtmp_emitter = RtmpEmitter(redis_client=self.redis_client, event_id=self.event_id, rtmp_url=rtmp_url)
+                        rtmp_emitter.start()
+                        self.processes.append(rtmp_emitter)
+                        
+                    except Exception as e:
+                        print(f"Error starting RTMP emitter: {str(e)}")
 
     def stop_all_processes(self):
         """Stop all background processes"""
