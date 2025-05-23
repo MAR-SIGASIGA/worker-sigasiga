@@ -7,6 +7,7 @@ import redis
 import os
 from .redis_stream_reader import RedisStreamReader
 import setproctitle
+import numpy as np
 
 class ClientFramesProcessor(multiprocessing.Process):
     def __init__(self, redis_client, event_id, client_id, name=None):
@@ -16,6 +17,15 @@ class ClientFramesProcessor(multiprocessing.Process):
         self.client_id = client_id
 
     def webm_reader(self):
+        """
+        Este método se encarga de leer el stream de video desde Redis y guardarlo en Redis como PNG y WEBP.
+        Template de claves IMPORTANTES referidas al evento y cliente:
+        - {event_id}-chunks_data_input_buffer-{client_id}
+        - {event_id}-video_source-{client_id}
+        - {event_id}-video_source_thumbnail-{client_id}
+        - {event_id}-video_source-{client_id}-process_alive        
+        """
+        # === GUARDAR ORIGINAL EN PNG (alta calidad) ===
         chunk_buffer_redis_key = f"{self.event_id}-chunks_data_input_buffer-{self.client_id}"
         # Crear el lector de stream desde Redis
         stream_reader = RedisStreamReader(self.redis_client, chunk_buffer_redis_key)
@@ -45,16 +55,19 @@ class ClientFramesProcessor(multiprocessing.Process):
                     if frame.pts is not None:
                         frame_timestamp = frame.pts * frame.time_base
                     img = frame.to_ndarray(format='bgr24')
-
+                    #Obtener resolucion del frame original, ancho y alto
+                    # height, width = img.shape[:2]
+                    # print(f"🟢 Resolucion del frame original (ancho x alto): {width}x{height}")
+                    #Obtener resolucion del frame original, ancho y alto
+                    final_frame = self.resize_and_center_frame_on_canvas(img)
                     # === GUARDAR ORIGINAL EN PNG (alta calidad) ===
-                    resized_png_img = cv2.resize(img, (1280, 720), interpolation=cv2.INTER_AREA)
-                    png_orig = cv2.imencode('.png', resized_png_img)[1].tobytes()
+                    png_orig = cv2.imencode('.png', final_frame)[1].tobytes()
                     self.redis_client.set(redis_video_source_key, png_orig)
                     one_second_png_frames_size += len(png_orig) / 1024  # 1 KB = 1024 bytes
                     # print(f"🟢 Frame {frame.pts} procesado y guardado en Redis key: {redis_key} | Tamaño: {frame_size_kb:.2f} KB")
 
                     # === REDIMENSIONAR Y GUARDAR COMPRIMIDA (640x360, calidad 30) ===
-                    resized_img = cv2.resize(img, (640, 360), interpolation=cv2.INTER_AREA)
+                    resized_img = cv2.resize(final_frame, (640, 360), interpolation=cv2.INTER_AREA)
                     encode_params_comp = [int(cv2.IMWRITE_WEBP_QUALITY), 10]
                     webp_comp = cv2.imencode('.webp', resized_img, encode_params_comp)[1].tobytes()
                     self.redis_client.set(redis_thumnail_video_source_key, webp_comp)
@@ -102,9 +115,32 @@ class ClientFramesProcessor(multiprocessing.Process):
             stream_reader.close()
             print("🟢 Lectura finalizada")
 
+    def resize_and_center_frame_on_canvas(self, img, canvas_width=1280, canvas_height=720):
+        original_height, original_width = img.shape[:2]
+
+        if original_height > original_width:
+            scale = canvas_height / original_height
+            new_height = canvas_height
+            new_width = int(original_width * scale)
+        else:
+            scale = canvas_width / original_width
+            new_width = canvas_width
+            new_height = int(original_height * scale)
+
+        resized_img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
+        canvas = np.zeros((canvas_height, canvas_width, 3), dtype=np.uint8)
+
+        x_offset = (canvas_width - new_width) // 2
+        y_offset = (canvas_height - new_height) // 2
+
+        canvas[y_offset:y_offset+new_height, x_offset:x_offset+new_width] = resized_img
+
+        return canvas
+
     def run(self):
         setproctitle.setproctitle(f"{self.event_id}-cfp-{self.client_id}")
         print(f"client frame processor for event {self.event_id} and client {self.client_id}")
         self.redis_client.set(f"{self.event_id}-video_source-{self.client_id}-process_alive", int(True))
         self.webm_reader()
+
 

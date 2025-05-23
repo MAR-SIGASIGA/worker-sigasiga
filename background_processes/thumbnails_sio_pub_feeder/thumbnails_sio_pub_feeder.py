@@ -60,7 +60,7 @@ class ThumbnailsSioPubFeeder(multiprocessing.Process):
             time.sleep(1/15)
             frames_count += 1
             if frames_count >= 15:
-                print(f"Size total frames to send: {total_data_size/1024:.2f} KB")
+                # print(f"Size total frames to send: {total_data_size/1024:.2f} KB")
                 frames_count = 0
                 total_data_size = 0
 

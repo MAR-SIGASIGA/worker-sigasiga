@@ -26,7 +26,8 @@ class ScoreboardProcess(multiprocessing.Process):
             f"{self.event_id}-scoreboard-timer_status": 0,
             f"{self.event_id}-scoreboard-24_timer": 24 * 1000,
             f"{self.event_id}-scoreboard-24_timer_status": 0,
-    }
+            f"{self.event_id}-scoreboard-visible": 0,
+        }
 
         for key, value in default_keys.items():
             self.redis_client.set(key, value)

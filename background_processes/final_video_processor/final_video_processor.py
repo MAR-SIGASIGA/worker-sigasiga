@@ -16,6 +16,17 @@ class FinalVideoProcessor(multiprocessing.Process):
         self.event_id = event_id
     #TODO: Optimizar el procesamiento de frames y comprimir default frame en origen
     def process_video_frames(self):
+        """
+        Este método se encarga de leer el stream de video desde Redis y guardarlo en Redis como PNG y WEBP.
+        Template de claves IMPORTANTES referidas al evento, a la fuente de video seleccionada, al scoreboard y al frame final.
+        - {event_id}-video_source-final_frame
+        - {event_id}-video_source_thumbnail-final_frame
+        - {event_id}-scoreboard_frame
+        - {event_id}-selected_source ---> Clave que CONTIENE la clave de la fuente de video seleccionada. Para obtener el frame de la fuente de video seleccionada, 
+            se debe obtener el valor de esta clave y usarlo como clave para obtener el frame de la fuente de video seleccionada.
+        - {event_id}-scoreboard-visible ---> Contiene el estado del scoreboard.
+        """
+
         current_path = os.path.dirname(os.path.abspath(__file__))
         default_frame_path = os.path.join(current_path, "resources", "default.jpg")
         thumbnail_default_frame_path = os.path.join(current_path, "resources", "thumbnail_default.webp")
@@ -75,8 +86,8 @@ class FinalVideoProcessor(multiprocessing.Process):
                 time.sleep(wait_time)
             if frames_count >= 30:
                 frames_count = 0
-                avg_frames_size = frames_per_second_size / 30 / 1024
-                print(f"Tamaño total 30fps: {frames_per_second_size/1024:.2f} KB, Tamaño promedio: {avg_frames_size:.2f} KB")
+                # avg_frames_size = frames_per_second_size / 30 / 1024
+                # print(f"Tamaño total 30fps: {frames_per_second_size/1024:.2f} KB, Tamaño promedio: {avg_frames_size:.2f} KB")
                 frames_per_second_size = 0
 
     def run(self):

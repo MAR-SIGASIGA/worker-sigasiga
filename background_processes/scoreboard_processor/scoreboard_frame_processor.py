@@ -25,6 +25,7 @@ class ScoreboardFrameProcessor(Process):
             'timer': f"{self.event_id}-scoreboard-timer",
             '24_timer': f"{self.event_id}-scoreboard-24_timer",
             'period': f"{self.event_id}-scoreboard-period",
+            'visible': f"{self.event_id}-scoreboard-visible",
         }
 
         data = {}
