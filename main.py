@@ -58,7 +58,6 @@ class EventManager(multiprocessing.Process):
                 }
         """
         for message in self.pubsub.listen():
-            print(message)
             if message['type'] == 'message':
                 data = json.loads(str(message['data'].decode('utf-8')))
                 action = data.get('action')

@@ -21,7 +21,7 @@ class RedisStreamReader(io.RawIOBase):
             if result:
                 _, data = result
                 with self.lock:
-                    print(f"📤 Datos recibidos de Redis: {len(data)} bytes")
+                    # print(f"📤 Datos recibidos de Redis: {len(data)} bytes")
                     self.buffer.extend(data)
                     self.data_available.set()
 

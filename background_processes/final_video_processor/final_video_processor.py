@@ -5,7 +5,7 @@ import time
 import io
 import os
 import setproctitle
-
+#TODO: optimizar
 class FinalVideoProcessor(multiprocessing.Process):
     """
     Final Video Processor class to handle video processing tasks.
@@ -14,12 +14,12 @@ class FinalVideoProcessor(multiprocessing.Process):
         super().__init__(name=name)
         self.redis_client = redis_client
         self.event_id = event_id
-
+    #TODO: Optimizar el procesamiento de frames y comprimir default frame en origen
     def process_video_frames(self):
         current_path = os.path.dirname(os.path.abspath(__file__))
         default_frame_path = os.path.join(current_path, "resources", "default.jpg")
         thumbnail_default_frame_path = os.path.join(current_path, "resources", "thumbnail_default.webp")
-        print(f"Default frame path: {default_frame_path}")
+        # print(f"Default frame path: {default_frame_path}")
         frame_rate = 30
         final_video_frame_key = f"{self.event_id}-video_source-final_frame"
         scoreboard_frame_key = f"{self.event_id}-scoreboard_frame"

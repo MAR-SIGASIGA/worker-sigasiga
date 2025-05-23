@@ -62,14 +62,14 @@ class ClientFramesProcessor(multiprocessing.Process):
                     # print(f"🟢 Thumbnail {frame.pts} procesado y guardado en Redis key: {redis_key} | Tamaño: {frame_size_kb:.2f} KB")
 
                     if time.time() - previous_time >= 1:
-                        print(f"📊 Estadísticas del cliente {self.client_id} en el último segundo:")
-                        print(f"\t🎞️ Frames procesados en el último segundo: {frame_count}")
-                        print(f"\t💾 Tamaño promedio de frames PNG: {one_second_png_frames_size / frame_count:.2f} KB")
-                        print(f"\t💾 Tamaño promedio de frames WEBP: {one_second_webp_frames_size / frame_count:.2f} KB")
-                        print(f"\t📤 Bandwidth por segundo PNG: {one_second_png_frames_size:.2f} KB")
-                        print(f"\t📤 Bandwidth por segundo WEBP: {one_second_webp_frames_size:.2f} KB")
-                        print(f"\t⏳ Tiempo promedio de procesamiento por frame: {frames_process_time / frame_count:.4f} segundos")
-                        print(f"\t⏳ Frames excedidos de tiempo de espera: {exceed_wait_time_frame_count}")
+                        # print(f"📊 Estadísticas del cliente {self.client_id} en el último segundo:")
+                        # print(f"\t🎞️ Frames procesados en el último segundo: {frame_count}")
+                        # print(f"\t💾 Tamaño promedio de frames PNG: {one_second_png_frames_size / frame_count:.2f} KB")
+                        # print(f"\t💾 Tamaño promedio de frames WEBP: {one_second_webp_frames_size / frame_count:.2f} KB")
+                        # print(f"\t📤 Bandwidth por segundo PNG: {one_second_png_frames_size:.2f} KB")
+                        # print(f"\t📤 Bandwidth por segundo WEBP: {one_second_webp_frames_size:.2f} KB")
+                        # print(f"\t⏳ Tiempo promedio de procesamiento por frame: {frames_process_time / frame_count:.4f} segundos")
+                        # print(f"\t⏳ Frames excedidos de tiempo de espera: {exceed_wait_time_frame_count}")
 
                         one_second_png_frames_size = 0
                         one_second_webp_frames_size = 0
