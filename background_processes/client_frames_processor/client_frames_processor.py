@@ -23,7 +23,8 @@ class ClientFramesProcessor(multiprocessing.Process):
         - {event_id}-chunks_data_input_buffer-{client_id}
         - {event_id}-video_source-{client_id}
         - {event_id}-video_source_thumbnail-{client_id}
-        - {event_id}-video_source-{client_id}-process_alive        
+        - {event_id}-video_source-{client_id}-process_alive
+        - {event_id}-video_source_orientation-{client_id}
         """
         # === GUARDAR ORIGINAL EN PNG (alta calidad) ===
         chunk_buffer_redis_key = f"{self.event_id}-chunks_data_input_buffer-{self.client_id}"
@@ -116,6 +117,19 @@ class ClientFramesProcessor(multiprocessing.Process):
             print("🟢 Lectura finalizada")
 
     def resize_and_center_frame_on_canvas(self, img, canvas_width=1280, canvas_height=720):
+        orientation = int(self.redis_client.get(f"{self.event_id}-video_source_orientation-{self.client_id}"))
+        if orientation == 0:
+            img = img
+        elif orientation == 1:
+            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+        elif orientation == 2:
+            img = cv2.rotate(img, cv2.ROTATE_180)
+        elif orientation == 3:
+            img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        else:
+            img = img
+
+
         original_height, original_width = img.shape[:2]
 
         if original_height > original_width:
@@ -141,6 +155,7 @@ class ClientFramesProcessor(multiprocessing.Process):
         setproctitle.setproctitle(f"{self.event_id}-cfp-{self.client_id}")
         print(f"client frame processor for event {self.event_id} and client {self.client_id}")
         self.redis_client.set(f"{self.event_id}-video_source-{self.client_id}-process_alive", int(True))
+        self.redis_client.set(f"{self.event_id}-video_source_orientation-{self.client_id}", int(0))
         self.webm_reader()
 
 

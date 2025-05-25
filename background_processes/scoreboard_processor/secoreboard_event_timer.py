@@ -2,6 +2,7 @@ import time
 import redis
 from multiprocessing import Process
 import setproctitle
+from .sio_pubsub_redis import publish_to_redis
 
 class EventTimer(Process):
     def __init__(self, event_id, redis_client):
@@ -33,6 +34,24 @@ class EventTimer(Process):
         """Update the timer value in Redis."""
         self.redis_client.set(self.timer_key, new_value)
 
+    def publish_scoreboard_data(self):
+        """Publish the scoreboard data to Redis."""
+        scoreboard_data = {
+            "local_team": self.redis_client.get(f"{self.event_id}-scoreboard-local_team").decode("utf-8"),
+            "visitor_team": self.redis_client.get(f"{self.event_id}-scoreboard-visitor_team").decode("utf-8"),
+            "local_points": self.redis_client.get(f"{self.event_id}-scoreboard-local_points").decode("utf-8"),
+            "visitor_points": self.redis_client.get(f"{self.event_id}-scoreboard-visitor_points").decode("utf-8"),
+            "period": self.redis_client.get(f"{self.event_id}-scoreboard-period").decode("utf-8"),
+            "timer": self.redis_client.get(f"{self.event_id}-scoreboard-timer").decode("utf-8"),
+            "timer_status": bool(int(self.redis_client.get(f"{self.event_id}-scoreboard-timer_status").decode("utf-8"))),
+            "24_timer": self.redis_client.get(f"{self.event_id}-scoreboard-24_timer").decode("utf-8"),
+            "24_timer_status": bool(int(self.redis_client.get(f"{self.event_id}-scoreboard-24_timer_status").decode("utf-8"))),
+            "visible": bool(int(self.redis_client.get(f"{self.event_id}-scoreboard-visible").decode("utf-8")))
+        }
+        print("timer_status: ", scoreboard_data["timer_status"])
+        publish_to_redis(redis_client=self.redis_client, 
+                    event_id=self.event_id, event_type="scoreboard_room", data_dict=scoreboard_data)
+
     def run(self):
         """Main timer process loop."""
         setproctitle.setproctitle(f"{self.event_id}-scoreboard_timer")
@@ -44,4 +63,5 @@ class EventTimer(Process):
                     self.update_timer(new_time)
                 else:
                     self.update_timer_status(False)
+            self.publish_scoreboard_data()
             time.sleep(0.1)
