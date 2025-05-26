@@ -132,14 +132,12 @@ class ClientFramesProcessor(multiprocessing.Process):
 
         original_height, original_width = img.shape[:2]
 
-        if original_height > original_width:
-            scale = canvas_height / original_height
-            new_height = canvas_height
-            new_width = int(original_width * scale)
-        else:
-            scale = canvas_width / original_width
-            new_width = canvas_width
-            new_height = int(original_height * scale)
+        # print(f"🟢 Resolucion del frame original (ancho x alto): {original_width}x{original_height}")
+
+        scale = canvas_height / original_height
+        new_height = canvas_height
+        new_width = int(original_width * scale)
+
 
         resized_img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
         canvas = np.zeros((canvas_height, canvas_width, 3), dtype=np.uint8)

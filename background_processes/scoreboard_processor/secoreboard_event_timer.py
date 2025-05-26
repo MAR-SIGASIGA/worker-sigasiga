@@ -48,7 +48,6 @@ class EventTimer(Process):
             "24_timer_status": bool(int(self.redis_client.get(f"{self.event_id}-scoreboard-24_timer_status").decode("utf-8"))),
             "visible": bool(int(self.redis_client.get(f"{self.event_id}-scoreboard-visible").decode("utf-8")))
         }
-        print("timer_status: ", scoreboard_data["timer_status"])
         publish_to_redis(redis_client=self.redis_client, 
                     event_id=self.event_id, event_type="scoreboard_room", data_dict=scoreboard_data)
 
