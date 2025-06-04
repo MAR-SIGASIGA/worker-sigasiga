@@ -17,7 +17,7 @@ class ThumbnailsSioPubFeeder(multiprocessing.Process):
     def run(self):
         setproctitle.setproctitle(f"{self.event_id}-thumbs_feeder")
         base_thumbnail_video_source_key = f"{self.event_id}-video_source_thumbnail-"
-        final_video_frame_key = f"{self.event_id}-video_source-final_frame"
+        final_video_thumbnail_key = f"{self.event_id}-video_source_thumbnail-final_frame"
         total_data_size = 0
         frames_count = 0
         while True:
@@ -26,7 +26,7 @@ class ThumbnailsSioPubFeeder(multiprocessing.Process):
             selected_video_source_name = self.redis_client.get(f"{self.event_id}-selected_source").decode('utf-8')
             # print(f"selected video source: {selected_video_source_name}")
             clients_thumbnails_dict = {}
-            thumbnail_key = final_video_frame_key
+            thumbnail_key = final_video_thumbnail_key
             thumbnail_data = self.redis_client.get(thumbnail_key)
             total_data_size += len(thumbnail_data) if thumbnail_data else 0
             # if thumbnail_data is not None:

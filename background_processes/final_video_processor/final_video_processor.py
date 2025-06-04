@@ -28,11 +28,12 @@ class FinalVideoProcessor(multiprocessing.Process):
         """
 
         current_path = os.path.dirname(os.path.abspath(__file__))
-        default_frame_path = os.path.join(current_path, "resources", "default.jpg")
+        default_frame_path = os.path.join(current_path, "resources", "default.webp")
         thumbnail_default_frame_path = os.path.join(current_path, "resources", "thumbnail_default.webp")
         # print(f"Default frame path: {default_frame_path}")
         frame_rate = 30
         final_video_frame_key = f"{self.event_id}-video_source-final_frame"
+        final_video_thumbnail_key = f"{self.event_id}-video_source_thumbnail-final_frame"
         scoreboard_frame_key = f"{self.event_id}-scoreboard_frame"
         default_frame = Image.open(default_frame_path)
         default_frame = default_frame.convert("RGBA")
@@ -41,15 +42,15 @@ class FinalVideoProcessor(multiprocessing.Process):
         thumbnail_default_video_source_key = f"{self.event_id}-video_source_thumbnail-default"
 
         buffer = io.BytesIO()
-        default_frame.save(buffer, format="PNG")
-        default_png_bytes = buffer.getvalue()
+        default_frame.save(buffer, format="WEBP")
+        default_webp_bytes = buffer.getvalue()
 
         thumbnail_default_file = open(thumbnail_default_frame_path, "rb")
-        thumbnail_default_png_bytes = thumbnail_default_file.read()
+        thumbnail_default_webp_bytes = thumbnail_default_file.read()
         thumbnail_default_file.close()
 
-        self.redis_client.set(default_video_source_key, default_png_bytes)
-        self.redis_client.set(thumbnail_default_video_source_key, thumbnail_default_png_bytes)
+        self.redis_client.set(default_video_source_key, default_webp_bytes)
+        self.redis_client.set(thumbnail_default_video_source_key, thumbnail_default_webp_bytes)
 
         name_selected_source_key = f"{self.event_id}-selected_source"
         name_selected_source = "default"
@@ -69,16 +70,23 @@ class FinalVideoProcessor(multiprocessing.Process):
             if frame_to_process is not None:
                 try:
                     buffer = io.BytesIO()
-                    frame_to_process = frame_to_process.convert("RGB")
-                    frame_to_process.save(buffer, format="WEBP", quality=1)
+                    frame_to_process_original = frame_to_process.convert("RGB")
+                    frame_to_process_original.save(buffer, format="WEBP", quality=70)
                     frame_to_process_bytes = buffer.getvalue()
                     frames_per_second_size += len(frame_to_process_bytes)
                     frames_count += 1
                     self.redis_client.set(final_video_frame_key, frame_to_process_bytes)
+
+                    buffer = io.BytesIO()
+                    frame_to_process_original.save(buffer, format="WEBP", quality=10)
+                    frame_to_process_thumbnail_bytes = buffer.getvalue()
+                    self.redis_client.set(final_video_thumbnail_key, frame_to_process_thumbnail_bytes)
                 except Exception as e:
-                    self.redis_client.set(final_video_frame_key, default_png_bytes)
+                    self.redis_client.set(final_video_frame_key, default_webp_bytes)
+                    self.redis_client.set(final_video_thumbnail_key, default_webp_bytes)
             else:
-                self.redis_client.set(final_video_frame_key, default_png_bytes)
+                self.redis_client.set(final_video_frame_key, default_webp_bytes)
+                self.redis_client.set(final_video_thumbnail_key, default_webp_bytes)
             end_time = time.time()
             elapsed_time = end_time - start_time
             wait_time = (1 / frame_rate) - elapsed_time

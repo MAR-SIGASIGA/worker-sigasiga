@@ -64,27 +64,27 @@ class ScoreboardFrameProcessor(Process):
 
         # Load a font (you'll need to specify the path to a font file)
         try:
-            text_font = ImageFont.truetype(f"{self.current_dir}/templates/italic_names.ttf", 80)
-            text_font_points = ImageFont.truetype(f"{self.current_dir}/templates/italic_names.ttf", 120)
+            text_font = ImageFont.truetype(f"{self.current_dir}/templates/italic_names.ttf", 55)
+            text_font_points = ImageFont.truetype(f"{self.current_dir}/templates/italic_names.ttf", 80)
 
         except:
-            text_font = ImageFont.load_default(50)
-            text_font_points = ImageFont.load_default(50)
+            text_font = ImageFont.load_default(33)
+            text_font_points = ImageFont.load_default(33)
         try:
-            timer_font = ImageFont.truetype(f"{self.current_dir}/templates/numbers.ttf", 80)
-            period_font = ImageFont.truetype(f"{self.current_dir}/templates/numbers.ttf", 60)
+            timer_font = ImageFont.truetype(f"{self.current_dir}/templates/numbers.ttf", 55)
+            period_font = ImageFont.truetype(f"{self.current_dir}/templates/numbers.ttf", 40)
             timer_font_24 = period_font
         except:
-            number_font = ImageFont.load_default(50)
+            number_font = ImageFont.load_default(33)
         # Draw the data on the frame
         # Note: You'll need to adjust these coordinates based on your template
-        draw.text((646, 225), text = data['local_team'], fill="white", font=text_font, anchor="lb")
-        draw.text((635, 350), text = data['visitor_team'], fill="white", font=text_font, anchor="lb")
-        draw.text((970, 228), text = data['local_points'], fill="white", font=text_font_points, anchor="lb")
-        draw.text((960, 353), text = data['visitor_points'], fill="white", font=text_font_points, anchor="lb")
-        draw.text((450, 245), text = self.miliseconds_to_time(int(data['timer'])), fill="white", font=timer_font, anchor="mm")
-        draw.text((450, 320), text = self.miliseconds_to_24_time(int(data['24_timer'])), fill="white", font=timer_font_24, anchor="mm")
-        draw.text((450, 161), text = f"{data['period']}º", fill="orange", font=period_font, anchor="mm")
+        draw.text((426, 149), text = data['local_team'], fill="white", font=text_font, anchor="lb")
+        draw.text((419, 231), text = data['visitor_team'], fill="white", font=text_font, anchor="lb")
+        draw.text((640, 151), text = data['local_points'], fill="white", font=text_font_points, anchor="lb")
+        draw.text((634, 233), text = data['visitor_points'], fill="white", font=text_font_points, anchor="lb")
+        draw.text((297, 162), text = self.miliseconds_to_time(int(data['timer'])), fill="white", font=timer_font, anchor="mm")
+        draw.text((297, 211), text = self.miliseconds_to_24_time(int(data['24_timer'])), fill="white", font=timer_font_24, anchor="mm")
+        draw.text((297, 106), text = f"{data['period']}º", fill="orange", font=period_font, anchor="mm")
 
         # background = Image.open("templates/background.webp")
 
@@ -101,7 +101,7 @@ class ScoreboardFrameProcessor(Process):
         # Load the template image
         sleep_time = 1 / 25
         try:
-            template = Image.open(f"{self.current_dir}/templates/scoreboard_template.png")
+            template = Image.open(f"{self.current_dir}/templates/template_scoreboard_logo.webp")
         except FileNotFoundError:
             print("Error: Template image not found!")
             return
