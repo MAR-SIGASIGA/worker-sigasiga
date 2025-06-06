@@ -78,7 +78,7 @@ class FinalVideoProcessor(multiprocessing.Process):
                     self.redis_client.set(final_video_frame_key, frame_to_process_bytes)
 
                     buffer = io.BytesIO()
-                    frame_to_process_original.save(buffer, format="WEBP", quality=10)
+                    frame_to_process_original.save(buffer, format="WEBP", quality=3)
                     frame_to_process_thumbnail_bytes = buffer.getvalue()
                     self.redis_client.set(final_video_thumbnail_key, frame_to_process_thumbnail_bytes)
                 except Exception as e:
